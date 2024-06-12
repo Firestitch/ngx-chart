@@ -1,16 +1,20 @@
 {
   "extends": "./node_modules/@firestitch/component-tools/config/tsconfig.cli.json",
   "compilerOptions": {
+    "types": [
+      "google.visualization"
+    ],
+    "typeRoots": [
+      "node_modules/@types",
+    ],
+    "skipLibCheck": true,
     "paths": {
-      "@firestitch/clipboard": [
+      "@firestitch/chart": [
         "src/public_api.ts"
       ],
       "@env": [
         "playground/environments/environment.ts"
       ]
     }
-  },
-  "angularCompilerOptions": {
-    "strictTemplates": true
   }
 }

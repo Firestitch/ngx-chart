@@ -1,25 +1,28 @@
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterModule, Routes } from '@angular/router';
 import { BrowserModule } from '@angular/platform-browser';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
+import { RouterModule, Routes } from '@angular/router';
 
 import { FsExampleModule } from '@firestitch/example';
-import { FsMessageModule } from '@firestitch/message';
 import { FsLabelModule } from '@firestitch/label';
+import { FsMessageModule } from '@firestitch/message';
 import { FsStoreModule } from '@firestitch/store';
 
-import { ToastrModule } from 'ngx-toastr';
+import { Observable, of } from 'rxjs';
 
-import { AppMaterialModule } from './material.module';
-import {
-  ExamplesComponent
-} from './components';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ToastrModule } from 'ngx-toastr';
+import { FsChartModule } from 'src/app/fs-chart.module';
+import { GOOGLE_CHARTS_LAZY_CONFIG, GoogleChartsConfig } from 'src/app/types/google-charts-config';
+
 import { AppComponent } from './app.component';
-import { CopyComponent } from './components/copy';
-import { FsClipboardModule } from 'src/app/fs-clipboard.module';
-import { ClipboardButtonComponent } from './components/clipboard-button';
-import { ClipboardComponent } from './components/clipboard';
+import {
+  ChartColumnComponent,
+  ChartLineComponent,
+  ExamplesComponent,
+} from './components';
+import { ChartBarComponent } from './components/chart-bar';
+import { AppMaterialModule } from './material.module';
 
 
 const routes: Routes = [
@@ -27,7 +30,7 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  bootstrap: [ AppComponent ],
+  bootstrap: [AppComponent],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
@@ -35,8 +38,8 @@ const routes: Routes = [
     FormsModule,
     FsLabelModule,
     FsStoreModule,
+    FsChartModule,
     FsExampleModule.forRoot(),
-    FsClipboardModule,
     FsMessageModule.forRoot(),
     ToastrModule.forRoot({ preventDuplicates: true }),
     RouterModule.forRoot(routes),
@@ -44,9 +47,19 @@ const routes: Routes = [
   declarations: [
     AppComponent,
     ExamplesComponent,
-    CopyComponent,
-    ClipboardButtonComponent,
-    ClipboardComponent,
+    ChartBarComponent,
+    ChartColumnComponent,
+    ChartLineComponent,
+  ],
+  providers: [
+    {
+      provide: GOOGLE_CHARTS_LAZY_CONFIG, 
+      useFactory: (): Observable<GoogleChartsConfig> => {
+        return of({
+          mapsApiKey: 'AIzaSyD-9tSrke72PouQMnMX-a7eZSW0jkFMBWY',
+        });
+      },
+    },
   ],
 })
 export class PlaygroundModule {
