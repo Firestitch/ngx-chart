@@ -1,4 +1,5 @@
 import { EventEmitter } from '@angular/core';
+
 import { Observable } from 'rxjs';
 
 import { ChartErrorEvent, ChartReadyEvent, ChartSelectionChangedEvent } from '../../types/events';

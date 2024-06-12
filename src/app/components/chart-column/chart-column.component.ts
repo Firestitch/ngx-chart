@@ -4,6 +4,7 @@ import {
   Input,
 } from '@angular/core';
 
+import { ColumnChartOptions } from '../../interfaces';
 import { ChartType } from '../../types/chart-type';
 import { FsChartComponent } from '../chart';
 
@@ -18,6 +19,6 @@ export class FsChartColumnComponent extends FsChartComponent {
   public type: ChartType = ChartType.ColumnChart;
 
   @Input()
-  public options: google.visualization.ColumnChartOptions;
+  public options: ColumnChartOptions;
 
 }

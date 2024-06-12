@@ -20,7 +20,6 @@ export class ChartLineComponent {
   public columns = ['City', 'Inhabitants'];
   
   public options: google.visualization.LineChartOptions = {
-    legend: { position: 'none' },
-    height: 400,
+    width: 500,
   };
 }

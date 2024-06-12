@@ -11,10 +11,12 @@ import {
   SimpleChanges,
 } from '@angular/core';
 
+
 import { fromEvent, Observable, ReplaySubject, Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 
 import { getPackageForChart } from '../../helpers';
+import { BarChartOptions, ColumnChartOptions, LineChartOptions } from '../../interfaces';
 import { DataTableService, ScriptLoaderService } from '../../services';
 import { ChartType } from '../../types/chart-type';
 import {
@@ -35,6 +37,7 @@ import { ChartBase, Column, Row } from '../chart-base';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FsChartComponent implements ChartBase, OnInit, OnChanges, OnDestroy {
+
   /**
    * The type of the chart to create.
    */
@@ -87,7 +90,7 @@ export class FsChartComponent implements ChartBase, OnInit, OnChanges, OnDestroy
    * to the chart type specified can be used here.
    */
   @Input()
-  public options: google.visualization.BarChartOptions | google.visualization.PieChartOptions | google.visualization.LineChartOptions = {};
+  public options: BarChartOptions | ColumnChartOptions | LineChartOptions = {};
 
   /**
    * Used to change the displayed value of the specified column in all rows.
@@ -123,17 +126,17 @@ export class FsChartComponent implements ChartBase, OnInit, OnChanges, OnDestroy
   @Output()
   public mouseleave = new EventEmitter<ChartMouseLeaveEvent>();
 
-  private resizeSubscription?: Subscription;
-  private dataTable: google.visualization.DataTable | undefined;
-  private wrapper: google.visualization.ChartWrapper | undefined;
-  private wrapperReadySubject = new ReplaySubject<google.visualization.ChartWrapper>(1);
-  private initialized = false;
-  private eventListeners = new Map<any, { eventName: string; callback: Function; handle: any }>();
+  private _resizeSubscription?: Subscription;
+  private _dataTable: google.visualization.DataTable | undefined;
+  private _wrapper: google.visualization.ChartWrapper | undefined;
+  private _wrapperReadySubject = new ReplaySubject<google.visualization.ChartWrapper>(1);
+  private _initialized = false;
+  private _eventListeners = new Map<any, { eventName: string; callback: () => any; handle: any }>();
 
   constructor(
-    private element: ElementRef,
-    private scriptLoaderService: ScriptLoaderService,
-    private dataTableService: DataTableService,
+    private _element: ElementRef,
+    private _scriptLoaderService: ScriptLoaderService,
+    private _dataTableService: DataTableService,
   ) {}
 
   public get chart(): google.visualization.ChartBase | null {
@@ -141,76 +144,83 @@ export class FsChartComponent implements ChartBase, OnInit, OnChanges, OnDestroy
   }
 
   public get wrapperReady$(): Observable<google.visualization.ChartWrapper> {
-    return this.wrapperReadySubject.asObservable();
+    return this._wrapperReadySubject.asObservable();
   }
 
   public get chartWrapper(): google.visualization.ChartWrapper {
-    if (!this.wrapper) {
+    if (!this._wrapper) {
       throw new Error('Trying to access the chart wrapper before it was fully initialized');
     }
 
-    return this.wrapper;
+    return this._wrapper;
   }
 
   public set chartWrapper(wrapper: google.visualization.ChartWrapper) {
-    this.wrapper = wrapper;
-    this.drawChart();
+    this._wrapper = wrapper;
+    this._drawChart();
   }
 
   public ngOnInit() {
     // We don't need to load any chart packages, the chart wrapper will handle this for us
-    this.scriptLoaderService.loadChartPackages(getPackageForChart(this.type))
+    this._scriptLoaderService.loadChartPackages(getPackageForChart(this.type))
       .subscribe(() => {
-        this.dataTable = this.dataTableService.create(this.data, this.columns, this.formatters);
+        this._dataTable = this._dataTableService.create(this.data, this.columns, this.formatters);
 
         // Only ever create the wrapper once to allow animations to happen when something changes.
-        this.wrapper = new google.visualization.ChartWrapper({
-          container: this.element.nativeElement,
+        this._wrapper = new google.visualization.ChartWrapper({
+          container: this._element.nativeElement,
           chartType: this.type,
-          dataTable: this.dataTable,
-          options: this.mergeOptions(),
+          dataTable: this._dataTable,
+          options: this._mergeOptions(),
         });
 
-        this.registerChartEvents();
+        if(this._wrapper.getOption('width')) {
+          if(String(this._wrapper.getOption('width')).match(/%/)) {
+            this.dynamicResize = true;
+            this._updateResizeListener();
+          }
+        }
 
-        this.wrapperReadySubject.next(this.wrapper);
-        this.initialized = true;
+        this._registerChartEvents();
 
-        this.drawChart();
+        this._wrapperReadySubject.next(this._wrapper);
+        this._initialized = true;
+
+        this._drawChart();
       });
   }
 
   public ngOnChanges(changes: SimpleChanges) {
     if (changes.dynamicResize) {
-      this.updateResizeListener();
+      this._updateResizeListener();
     }
 
-    if (this.initialized) {
+    if (this._initialized) {
       let shouldRedraw = false;
       if (changes.data || changes.columns || changes.formatters) {
-        this.dataTable = this.dataTableService.create(this.data, this.columns, this.formatters);
-        this.wrapper.setDataTable(this.dataTable);
+        this._dataTable = this._dataTableService.create(this.data, this.columns, this.formatters);
+        this._wrapper.setDataTable(this._dataTable);
         shouldRedraw = true;
       }
 
       if (changes.type) {
-        this.wrapper.setChartType(this.type);
+        this._wrapper.setChartType(this.type);
         shouldRedraw = true;
       }
 
       if (changes.options || changes.width || changes.height || changes.title) {
-        this.wrapper.setOptions(this.mergeOptions());
+        this._wrapper.setOptions(this._mergeOptions());
         shouldRedraw = true;
       }
 
       if (shouldRedraw) {
-        this.drawChart();
+        this._drawChart();
       }
     }
   }
 
   public ngOnDestroy(): void {
-    this.unsubscribeToResizeIfSubscribed();
+    this._unsubscribeToResizeIfSubscribed();
   }
 
   /**
@@ -220,43 +230,43 @@ export class FsChartComponent implements ChartBase, OnInit, OnChanges, OnDestroy
    *
    * Returns a handle that can be used for `removeEventListener`.
    */
-  public addEventListener(eventName: string, callback: Function): any {
-    const handle = this.registerChartEvent(this.chart, eventName, callback);
-    this.eventListeners.set(handle, { eventName, callback, handle });
+  public addEventListener(eventName: string, callback: () => void): any {
+    const handle = this._registerChartEvent(this.chart, eventName, callback);
+    this._eventListeners.set(handle, { eventName, callback, handle });
 
     return handle;
   }
 
   public removeEventListener(handle: any): void {
-    const entry = this.eventListeners.get(handle);
+    const entry = this._eventListeners.get(handle);
     if (entry) {
       google.visualization.events.removeListener(entry.handle);
-      this.eventListeners.delete(handle);
+      this._eventListeners.delete(handle);
     }
   }
 
-  private updateResizeListener() {
-    this.unsubscribeToResizeIfSubscribed();
+  private _updateResizeListener() {
+    this._unsubscribeToResizeIfSubscribed();
 
     if (this.dynamicResize) {
-      this.resizeSubscription = fromEvent(window, 'resize', { passive: true })
+      this._resizeSubscription = fromEvent(window, 'resize', { passive: true })
         .pipe(debounceTime(100))
         .subscribe(() => {
-          if (this.initialized) {
-            this.drawChart();
+          if (this._initialized) {
+            this._drawChart();
           }
         });
     }
   }
 
-  private unsubscribeToResizeIfSubscribed() {
-    if (this.resizeSubscription != null) {
-      this.resizeSubscription.unsubscribe();
-      this.resizeSubscription = undefined;
+  private _unsubscribeToResizeIfSubscribed() {
+    if (this._resizeSubscription) {
+      this._resizeSubscription.unsubscribe();
+      this._resizeSubscription = undefined;
     }
   }
 
-  private mergeOptions(): object {
+  private _mergeOptions(): object {
     return {
       title: this.title,
       width: this.width,
@@ -265,31 +275,31 @@ export class FsChartComponent implements ChartBase, OnInit, OnChanges, OnDestroy
     };
   }
 
-  private registerChartEvents() {
-    google.visualization.events.removeAllListeners(this.wrapper);
+  private _registerChartEvents() {
+    google.visualization.events.removeAllListeners(this._wrapper);
 
-    this.registerChartEvent(this.wrapper, 'ready', () => {
+    this._registerChartEvent(this._wrapper, 'ready', () => {
       // This could also be done by checking if we already subscribed to the events
       google.visualization.events.removeAllListeners(this.chart);
-      this.registerChartEvent(this.chart, 'onmouseover', (event: ChartMouseOverEvent) => this.mouseover.emit(event));
-      this.registerChartEvent(this.chart, 'onmouseout', (event: ChartMouseLeaveEvent) => this.mouseleave.emit(event));
-      this.registerChartEvent(this.chart, 'select', () => {
+      this._registerChartEvent(this.chart, 'onmouseover', (event: ChartMouseOverEvent) => this.mouseover.emit(event));
+      this._registerChartEvent(this.chart, 'onmouseout', (event: ChartMouseLeaveEvent) => this.mouseleave.emit(event));
+      this._registerChartEvent(this.chart, 'select', () => {
         const selection = this.chart.getSelection();
         this.select.emit({ selection });
       });
-      this.eventListeners.forEach((x) => (x.handle = this.registerChartEvent(this.chart, x.eventName, x.callback)));
+      this._eventListeners.forEach((x) => (x.handle = this._registerChartEvent(this.chart, x.eventName, x.callback)));
 
       this.ready.emit({ chart: this.chart });
     });
 
-    this.registerChartEvent(this.wrapper, 'error', (error: ChartErrorEvent) => this.error.emit(error));
+    this._registerChartEvent(this._wrapper, 'error', (error: ChartErrorEvent) => this.error.emit(error));
   }
 
-  private registerChartEvent(object: any, eventName: string, callback: Function): any {
+  private _registerChartEvent(object: any, eventName: string, callback: (value: any) => any): any {
     return google.visualization.events.addListener(object, eventName, callback);
   }
 
-  private drawChart() {
-    this.wrapper.draw();
+  private _drawChart() {
+    this._wrapper.draw();
   }
 }

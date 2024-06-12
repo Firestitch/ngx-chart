@@ -4,6 +4,7 @@ import {
   Input,
 } from '@angular/core';
 
+import { LineChartOptions } from '../../interfaces';
 import { ChartType } from '../../types/chart-type';
 import { FsChartComponent } from '../chart';
 
@@ -18,6 +19,6 @@ export class FsChartLineComponent extends FsChartComponent {
   public type: ChartType = ChartType.Line;
 
   @Input()
-  public options: google.visualization.LineChartOptions;
+  public options: LineChartOptions;
 
 }

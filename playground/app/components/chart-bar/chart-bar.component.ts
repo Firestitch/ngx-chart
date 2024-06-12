@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 
+import { BarChartOptions } from '@firestitch/chart';
+
 
 @Component({
   selector: 'app-chart-bar',
@@ -19,8 +21,8 @@ export class ChartBarComponent {
 
   public columns = ['City', 'Inhabitants'];
   
-  public options: google.visualization.BarChartOptions = {
-    legend: { position: 'none' },
+  public options: BarChartOptions = {
     height: 400,
+    width: '100%',
   };
 }

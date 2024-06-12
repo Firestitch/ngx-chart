@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 
+import { ColumnChartOptions } from '@firestitch/chart';
+
 
 @Component({
   selector: 'app-chart-column',
@@ -19,8 +21,7 @@ export class ChartColumnComponent {
 
   public columns = ['City', 'Inhabitants'];
   
-  public options: google.visualization.ColumnChartOptions = {
+  public options: ColumnChartOptions = {
     legend: { position: 'none' },
-    height: 400,
   };
 }
