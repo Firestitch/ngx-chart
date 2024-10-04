@@ -20,6 +20,6 @@ export class FsChartBarComponent extends FsChartComponent {
   public type: ChartType = ChartType.Bar;
 
   @Input()
-  public options: BarChartOptions;
+  declare public options: BarChartOptions;
 
 }

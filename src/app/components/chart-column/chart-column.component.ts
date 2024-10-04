@@ -19,6 +19,6 @@ export class FsChartColumnComponent extends FsChartComponent {
   public type: ChartType = ChartType.ColumnChart;
 
   @Input()
-  public options: ColumnChartOptions;
+  declare public options: ColumnChartOptions;
 
 }

@@ -19,6 +19,6 @@ export class FsChartLineComponent extends FsChartComponent {
   public type: ChartType = ChartType.Line;
 
   @Input()
-  public options: LineChartOptions;
+  declare public options: LineChartOptions;
 
 }
