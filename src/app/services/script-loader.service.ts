@@ -61,7 +61,7 @@ export class ScriptLoaderService {
           google.charts.load(googleChartsConfig.version!, config);
           google.charts.setOnLoadCallback(() => {
             this.zone.run(() => {
-              observer.next();
+              observer.next(null);
               observer.complete();
             });
           });
@@ -83,7 +83,7 @@ export class ScriptLoaderService {
       const script = this.createGoogleChartsScript();
       script.onload = () => {
         this.zone.run(() => {
-          this.scriptLoadSubject.next();
+          this.scriptLoadSubject.next(null);
           this.scriptLoadSubject.complete();
         });
       };
