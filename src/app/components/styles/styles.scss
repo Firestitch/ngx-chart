@@ -3,10 +3,4 @@
     opacity: 0.3;
     overflow: hidden;
   }
-
-  ::ng-deep {
-    rect {
-      fill: transparent !important;
-    }
-  }
 }
