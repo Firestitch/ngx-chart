@@ -1,8 +1,10 @@
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   EventEmitter,
+  HostBinding,
   Input,
   OnChanges,
   OnDestroy,
@@ -13,7 +15,7 @@ import {
 
 
 import { fromEvent, Observable, ReplaySubject, Subscription } from 'rxjs';
-import { debounceTime } from 'rxjs/operators';
+import { debounceTime, tap } from 'rxjs/operators';
 
 import { getPackageForChart } from '../../helpers';
 import { BarChartOptions, ColumnChartOptions, LineChartOptions } from '../../interfaces';
@@ -32,11 +34,14 @@ import { ChartBase, Column, Row } from '../chart-base';
 
 @Component({
   selector: 'fs-chart',
-  template: '',
-  styles: [':host { width: fit-content; display: block; }'],
+  templateUrl: './chart.component.html',
+  styleUrls: ['./chart.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FsChartComponent implements ChartBase, OnInit, OnChanges, OnDestroy {
+
+  @HostBinding('class.resizing')
+  public resizing = false;
 
   /**
    * The type of the chart to create.
@@ -137,6 +142,7 @@ export class FsChartComponent implements ChartBase, OnInit, OnChanges, OnDestroy
     private _element: ElementRef,
     private _scriptLoaderService: ScriptLoaderService,
     private _dataTableService: DataTableService,
+    private _cdRef: ChangeDetectorRef,
   ) {}
 
   public get chart(): google.visualization.ChartBase | null {
@@ -250,8 +256,16 @@ export class FsChartComponent implements ChartBase, OnInit, OnChanges, OnDestroy
 
     if (this.dynamicResize) {
       this._resizeSubscription = fromEvent(window, 'resize', { passive: true })
-        .pipe(debounceTime(100))
+        .pipe(
+          tap(() => {
+            this.resizing = true;
+            this._cdRef.markForCheck();
+          }),
+          debounceTime(300),
+        )
         .subscribe(() => {
+          this.resizing = false;
+          this._cdRef.markForCheck();
           if (this._initialized) {
             this._drawChart();
           }

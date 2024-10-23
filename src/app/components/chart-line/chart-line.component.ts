@@ -12,6 +12,7 @@ import { FsChartComponent } from '../chart';
 @Component({
   selector: 'fs-chart-line',
   template: '',
+  styleUrls: ['./chart-line.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FsChartLineComponent extends FsChartComponent {

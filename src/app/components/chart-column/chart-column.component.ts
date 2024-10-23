@@ -12,6 +12,7 @@ import { FsChartComponent } from '../chart';
 @Component({
   selector: 'fs-chart-column',
   template: '',
+  styleUrls: ['./chart-column.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FsChartColumnComponent extends FsChartComponent {

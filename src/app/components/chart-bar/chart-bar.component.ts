@@ -13,7 +13,7 @@ import { FsChartComponent } from '../chart';
   selector: 'fs-chart-bar',
   template: '',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  styles: [':host { width: 100%; display: block }'],
+  styleUrls: ['./chart-bar.component.scss'],
 })
 export class FsChartBarComponent extends FsChartComponent {
 

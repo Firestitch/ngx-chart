@@ -24,5 +24,6 @@ export class ChartBarComponent {
   public options: BarChartOptions = {
     height: 400,
     width: '100%',
+    legend: { position:'none' },
   };
 }
