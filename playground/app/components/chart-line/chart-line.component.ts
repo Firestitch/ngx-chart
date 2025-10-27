@@ -1,11 +1,14 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { FsChartLineComponent } from '../../../../src/app/components/chart-line/chart-line.component';
 
 
 @Component({
-  selector: 'app-chart-line',
-  templateUrl: './chart-line.component.html',
-  styleUrls: ['./chart-line.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-chart-line',
+    templateUrl: './chart-line.component.html',
+    styleUrls: ['./chart-line.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
+    imports: [FsChartLineComponent],
 })
 export class ChartLineComponent {
 

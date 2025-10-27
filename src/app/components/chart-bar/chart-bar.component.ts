@@ -10,10 +10,11 @@ import { FsChartComponent } from '../chart';
 
 
 @Component({
-  selector: 'fs-chart-bar',
-  template: '',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  styleUrls: ['./chart-bar.component.scss'],
+    selector: 'fs-chart-bar',
+    template: '',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    styleUrls: ['./chart-bar.component.scss'],
+    standalone: true,
 })
 export class FsChartBarComponent extends FsChartComponent {
 

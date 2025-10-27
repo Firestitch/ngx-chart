@@ -7,20 +7,18 @@ import {
 
 
 @NgModule({
-  imports: [
-  ],
-  declarations: [
-    FsChartComponent,
-    FsChartBarComponent,
-    FsChartColumnComponent,
-    FsChartLineComponent,
-  ],
-  exports: [
-    FsChartComponent,
-    FsChartColumnComponent,
-    FsChartBarComponent,
-    FsChartLineComponent,
-  ],
+    imports: [
+        FsChartComponent,
+        FsChartBarComponent,
+        FsChartColumnComponent,
+        FsChartLineComponent
+    ],
+    exports: [
+        FsChartComponent,
+        FsChartColumnComponent,
+        FsChartBarComponent,
+        FsChartLineComponent,
+    ],
 })
 export class FsChartModule {
   public static forRoot(): ModuleWithProviders<FsChartModule> {

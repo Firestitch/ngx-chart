@@ -1,13 +1,16 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 import { ColumnChartOptions } from '@firestitch/chart';
+import { FsChartColumnComponent } from '../../../../src/app/components/chart-column/chart-column.component';
 
 
 @Component({
-  selector: 'app-chart-column',
-  templateUrl: './chart-column.component.html',
-  styleUrls: ['./chart-column.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-chart-column',
+    templateUrl: './chart-column.component.html',
+    styleUrls: ['./chart-column.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
+    imports: [FsChartColumnComponent],
 })
 export class ChartColumnComponent {
 

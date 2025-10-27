@@ -1,13 +1,16 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 import { BarChartOptions } from '@firestitch/chart';
+import { FsChartBarComponent } from '../../../../src/app/components/chart-bar/chart-bar.component';
 
 
 @Component({
-  selector: 'app-chart-bar',
-  templateUrl: './chart-bar.component.html',
-  styleUrls: ['./chart-bar.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-chart-bar',
+    templateUrl: './chart-bar.component.html',
+    styleUrls: ['./chart-bar.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
+    imports: [FsChartBarComponent],
 })
 export class ChartBarComponent {
 

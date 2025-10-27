@@ -33,10 +33,11 @@ import { ChartBase, Column, Row } from '../chart-base';
 
 
 @Component({
-  selector: 'fs-chart',
-  templateUrl: './chart.component.html',
-  styleUrls: ['./chart.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'fs-chart',
+    templateUrl: './chart.component.html',
+    styleUrls: ['./chart.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
 })
 export class FsChartComponent implements ChartBase, OnInit, OnChanges, OnDestroy {
 
