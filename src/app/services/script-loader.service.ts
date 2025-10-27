@@ -1,4 +1,4 @@
-import { Inject, Injectable, LOCALE_ID, NgZone } from '@angular/core';
+import { Injectable, LOCALE_ID, NgZone, inject } from '@angular/core';
 import { Observable, of, Subject } from 'rxjs';
 import { map, mergeMap, switchMap } from 'rxjs/operators';
 
@@ -9,14 +9,12 @@ import { GOOGLE_CHARTS_LAZY_CONFIG, GoogleChartsConfig } from '../types/google-c
   providedIn: 'root'
 })
 export class ScriptLoaderService {
+  private zone = inject(NgZone);
+  private localeId = inject(LOCALE_ID);
+  private readonly config$ = inject<Observable<GoogleChartsConfig>>(GOOGLE_CHARTS_LAZY_CONFIG);
+
   private readonly scriptSource = 'https://www.gstatic.com/charts/loader.js';
   private readonly scriptLoadSubject = new Subject<void>();
-
-  constructor(
-    private zone: NgZone,
-    @Inject(LOCALE_ID) private localeId: string,
-    @Inject(GOOGLE_CHARTS_LAZY_CONFIG) private readonly config$: Observable<GoogleChartsConfig>
-  ) { }
 
   /**
    * Checks whether `google.charts` is available.

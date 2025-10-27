@@ -1,17 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  EventEmitter,
-  HostBinding,
-  Input,
-  OnChanges,
-  OnDestroy,
-  OnInit,
-  Output,
-  SimpleChanges,
-} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostBinding, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, inject } from '@angular/core';
 
 
 import { fromEvent, Observable, ReplaySubject, Subscription } from 'rxjs';
@@ -40,6 +27,11 @@ import { ChartBase, Column, Row } from '../chart-base';
     standalone: true,
 })
 export class FsChartComponent implements ChartBase, OnInit, OnChanges, OnDestroy {
+  private _element = inject(ElementRef);
+  private _scriptLoaderService = inject(ScriptLoaderService);
+  private _dataTableService = inject(DataTableService);
+  private _cdRef = inject(ChangeDetectorRef);
+
 
   @HostBinding('class.resizing')
   public resizing = false;
@@ -138,13 +130,6 @@ export class FsChartComponent implements ChartBase, OnInit, OnChanges, OnDestroy
   private _wrapperReadySubject = new ReplaySubject<google.visualization.ChartWrapper>(1);
   private _initialized = false;
   private _eventListeners = new Map<any, { eventName: string; callback: () => any; handle: any }>();
-
-  constructor(
-    private _element: ElementRef,
-    private _scriptLoaderService: ScriptLoaderService,
-    private _dataTableService: DataTableService,
-    private _cdRef: ChangeDetectorRef,
-  ) {}
 
   public get chart(): google.visualization.ChartBase | null {
     return this.chartWrapper.getChart();
