@@ -30,11 +30,6 @@ export interface ChartBase {
   select: EventEmitter<ChartSelectionChangedEvent>;
 
   /**
-   * The drawn chart or `null`.
-   */
-  chart: google.visualization.ChartBase | null;
-
-  /**
    * The underlying chart wrapper.
    *
    * This will throw an exception when trying to access the chart wrapper before `wrapperReady$` emits.

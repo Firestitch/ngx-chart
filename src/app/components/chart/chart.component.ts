@@ -2,7 +2,7 @@ import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, E
 
 
 import { Observable, ReplaySubject, Subscription, fromEvent } from 'rxjs';
-import { debounceTime, delay, tap } from 'rxjs/operators';
+import { debounceTime, tap } from 'rxjs/operators';
 
 import { getPackageForChart } from '../../helpers';
 import { BarChartOptions, ColumnChartOptions, LineChartOptions } from '../../interfaces';
@@ -119,14 +119,17 @@ export class FsChartComponent implements ChartBase, OnChanges, OnDestroy, AfterV
   @Output()
   public mouseleave = new EventEmitter<ChartMouseLeaveEvent>();
 
-  public chart: google.visualization.ChartBase;
-
   private _resizeSubscription?: Subscription;
   private _dataTable: google.visualization.DataTable | undefined;
   private _wrapper: google.visualization.ChartWrapper | undefined;
   private _wrapperReadySubject = new ReplaySubject<google.visualization.ChartWrapper>(1);
   private _initialized = false;
-  private _eventListeners = new Map<any, { eventName: string; callback: () => any; handle: any }>();  
+  private _eventListeners = new Map<any,
+   { 
+    eventName: string; 
+    callback: () => any; 
+    handle: any 
+   }>();  
   private _element = inject(ElementRef);
   private _scriptLoaderService = inject(ScriptLoaderService);
   private _dataTableService = inject(DataTableService);
@@ -134,6 +137,10 @@ export class FsChartComponent implements ChartBase, OnChanges, OnDestroy, AfterV
 
   public get wrapperReady$(): Observable<google.visualization.ChartWrapper> {
     return this._wrapperReadySubject.asObservable();
+  }
+
+  public get chart(): google.visualization.ChartBase | null {
+    return this._wrapper?.getChart();
   }
 
   public get chartWrapper(): google.visualization.ChartWrapper {
@@ -170,8 +177,6 @@ export class FsChartComponent implements ChartBase, OnChanges, OnDestroy, AfterV
           this._wrapperReadySubject.next(this._wrapper);
           this._initialized = true;
         }),
-        // Delay to allow the chart to be fully initialized
-        delay(50),
         tap(() => {
           this._drawChart();
           this._registerChartEvents();
@@ -245,7 +250,7 @@ export class FsChartComponent implements ChartBase, OnChanges, OnDestroy, AfterV
             this.resizing = true;
             this._cdRef.markForCheck();
           }),
-          debounceTime(300),
+          debounceTime(200),
         )
         .subscribe(() => {
           this.resizing = false;
@@ -275,22 +280,37 @@ export class FsChartComponent implements ChartBase, OnChanges, OnDestroy, AfterV
 
   private _registerChartEvents() {
     google.visualization.events.removeAllListeners(this._wrapper);
+    this._registerChartEvent(
+      this._wrapper, 
+      'error',
+      (error: ChartErrorEvent) => this.error.emit(error));
 
-    // This could also be done by checking if we already subscribed to the events
-    google.visualization.events.removeAllListeners(this.chart);
-    this._registerChartEvent(this.chart, 'onmouseover', (event: ChartMouseOverEvent) => this.mouseover.emit(event));
-    this._registerChartEvent(this.chart, 'onmouseout', (event: ChartMouseLeaveEvent) => this.mouseleave.emit(event));
-    this._registerChartEvent(this.chart, 'select', () => {
-      const selection = this.chart.getSelection();
-      this.select.emit({ selection });
+    this._registerChartEvent(this._wrapper, 'ready', () => {
+      // This could also be done by checking if we already subscribed to the events
+      google.visualization.events.removeAllListeners(this.chart);
+      this._registerChartEvent(
+        this.chart, 
+        'onmouseover',
+        (event: ChartMouseOverEvent) => this.mouseover.emit(event));
+
+      this._registerChartEvent(
+        this.chart, 
+        'onmouseout', 
+        (event: ChartMouseLeaveEvent) => this.mouseleave.emit(event));
+
+      this._registerChartEvent(
+        this.chart,
+        'select', 
+        () => {
+          const selection = this.chart.getSelection();
+          this.select.emit({ selection });
+        });
+
+      this._eventListeners
+        .forEach((x) => (x.handle = this._registerChartEvent(this.chart, x.eventName, x.callback)));
+
+      this.ready.emit({ chart: this.chart });
     });
-
-    this._eventListeners
-      .forEach((x) => (x.handle = this._registerChartEvent(this.chart, x.eventName, x.callback)));
-
-    this.ready.emit({ chart: this.chart });
-
-    this._registerChartEvent(this._wrapper, 'error', (error: ChartErrorEvent) => this.error.emit(error));
   }
 
   private _registerChartEvent(object: any, eventName: string, callback: (value: any) => any): any {
