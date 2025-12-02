@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostBinding, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, inject } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostBinding, Input, OnChanges, OnDestroy, Output, SimpleChanges, inject } from '@angular/core';
 
 
-import { fromEvent, Observable, ReplaySubject, Subscription } from 'rxjs';
+import { Observable, ReplaySubject, Subscription, fromEvent } from 'rxjs';
 import { debounceTime, tap } from 'rxjs/operators';
 
 import { getPackageForChart } from '../../helpers';
@@ -20,19 +20,14 @@ import { ChartBase, Column, Row } from '../chart-base';
 
 
 @Component({
-    selector: 'fs-chart',
-    templateUrl: './chart.component.html',
-    styleUrls: ['./chart.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: true,
+  selector: 'fs-chart',
+  templateUrl: './chart.component.html',
+  styleUrls: ['./chart.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
 })
-export class FsChartComponent implements ChartBase, OnInit, OnChanges, OnDestroy {
-  private _element = inject(ElementRef);
-  private _scriptLoaderService = inject(ScriptLoaderService);
-  private _dataTableService = inject(DataTableService);
-  private _cdRef = inject(ChangeDetectorRef);
-
-
+export class FsChartComponent implements ChartBase, OnChanges, OnDestroy, AfterViewInit {
+ 
   @HostBinding('class.resizing')
   public resizing = false;
 
@@ -124,16 +119,18 @@ export class FsChartComponent implements ChartBase, OnInit, OnChanges, OnDestroy
   @Output()
   public mouseleave = new EventEmitter<ChartMouseLeaveEvent>();
 
+  public chart: google.visualization.ChartBase;
+
   private _resizeSubscription?: Subscription;
   private _dataTable: google.visualization.DataTable | undefined;
   private _wrapper: google.visualization.ChartWrapper | undefined;
   private _wrapperReadySubject = new ReplaySubject<google.visualization.ChartWrapper>(1);
   private _initialized = false;
-  private _eventListeners = new Map<any, { eventName: string; callback: () => any; handle: any }>();
-
-  public get chart(): google.visualization.ChartBase | null {
-    return this.chartWrapper.getChart();
-  }
+  private _eventListeners = new Map<any, { eventName: string; callback: () => any; handle: any }>();  
+  private _element = inject(ElementRef);
+  private _scriptLoaderService = inject(ScriptLoaderService);
+  private _dataTableService = inject(DataTableService);
+  private _cdRef = inject(ChangeDetectorRef);
 
   public get wrapperReady$(): Observable<google.visualization.ChartWrapper> {
     return this._wrapperReadySubject.asObservable();
@@ -147,14 +144,10 @@ export class FsChartComponent implements ChartBase, OnInit, OnChanges, OnDestroy
     return this._wrapper;
   }
 
-  public set chartWrapper(wrapper: google.visualization.ChartWrapper) {
-    this._wrapper = wrapper;
-    this._drawChart();
-  }
-
-  public ngOnInit() {
+  public ngAfterViewInit() {
     // We don't need to load any chart packages, the chart wrapper will handle this for us
-    this._scriptLoaderService.loadChartPackages(getPackageForChart(this.type))
+    this._scriptLoaderService
+      .loadChartPackages(getPackageForChart(this.type))
       .subscribe(() => {
         this._dataTable = this._dataTableService.create(this.data, this.columns, this.formatters);
 
