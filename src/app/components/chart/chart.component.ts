@@ -166,12 +166,11 @@ export class FsChartComponent implements ChartBase, OnChanges, OnDestroy, AfterV
           }
         }
 
-        this._registerChartEvents();
-
         this._wrapperReadySubject.next(this._wrapper);
         this._initialized = true;
 
         this._drawChart();
+        this._registerChartEvents();
       });
   }
 
@@ -271,19 +270,19 @@ export class FsChartComponent implements ChartBase, OnChanges, OnDestroy, AfterV
   private _registerChartEvents() {
     google.visualization.events.removeAllListeners(this._wrapper);
 
-    this._registerChartEvent(this._wrapper, 'ready', () => {
-      // This could also be done by checking if we already subscribed to the events
-      google.visualization.events.removeAllListeners(this.chart);
-      this._registerChartEvent(this.chart, 'onmouseover', (event: ChartMouseOverEvent) => this.mouseover.emit(event));
-      this._registerChartEvent(this.chart, 'onmouseout', (event: ChartMouseLeaveEvent) => this.mouseleave.emit(event));
-      this._registerChartEvent(this.chart, 'select', () => {
-        const selection = this.chart.getSelection();
-        this.select.emit({ selection });
-      });
-      this._eventListeners.forEach((x) => (x.handle = this._registerChartEvent(this.chart, x.eventName, x.callback)));
-
-      this.ready.emit({ chart: this.chart });
+    // This could also be done by checking if we already subscribed to the events
+    google.visualization.events.removeAllListeners(this.chart);
+    this._registerChartEvent(this.chart, 'onmouseover', (event: ChartMouseOverEvent) => this.mouseover.emit(event));
+    this._registerChartEvent(this.chart, 'onmouseout', (event: ChartMouseLeaveEvent) => this.mouseleave.emit(event));
+    this._registerChartEvent(this.chart, 'select', () => {
+      const selection = this.chart.getSelection();
+      this.select.emit({ selection });
     });
+
+    this._eventListeners
+      .forEach((x) => (x.handle = this._registerChartEvent(this.chart, x.eventName, x.callback)));
+
+    this.ready.emit({ chart: this.chart });
 
     this._registerChartEvent(this._wrapper, 'error', (error: ChartErrorEvent) => this.error.emit(error));
   }
