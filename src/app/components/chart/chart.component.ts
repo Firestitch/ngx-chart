@@ -2,7 +2,7 @@ import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, E
 
 
 import { Observable, ReplaySubject, Subscription, fromEvent } from 'rxjs';
-import { debounceTime, tap } from 'rxjs/operators';
+import { debounceTime, delay, tap } from 'rxjs/operators';
 
 import { getPackageForChart } from '../../helpers';
 import { BarChartOptions, ColumnChartOptions, LineChartOptions } from '../../interfaces';
@@ -148,30 +148,36 @@ export class FsChartComponent implements ChartBase, OnChanges, OnDestroy, AfterV
     // We don't need to load any chart packages, the chart wrapper will handle this for us
     this._scriptLoaderService
       .loadChartPackages(getPackageForChart(this.type))
-      .subscribe(() => {
-        this._dataTable = this._dataTableService.create(this.data, this.columns, this.formatters);
+      .pipe(
+        tap(() => {
+          this._dataTable = this._dataTableService.create(this.data, this.columns, this.formatters);
 
-        // Only ever create the wrapper once to allow animations to happen when something changes.
-        this._wrapper = new google.visualization.ChartWrapper({
-          container: this._element.nativeElement,
-          chartType: this.type,
-          dataTable: this._dataTable,
-          options: this._mergeOptions(),
-        });
-
-        if(this._wrapper.getOption('width')) {
-          if(String(this._wrapper.getOption('width')).match(/%/)) {
-            this.dynamicResize = true;
-            this._updateResizeListener();
+          // Only ever create the wrapper once to allow animations to happen when something changes.
+          this._wrapper = new google.visualization.ChartWrapper({
+            container: this._element.nativeElement,
+            chartType: this.type,
+            dataTable: this._dataTable,
+            options: this._mergeOptions(),
+          });
+  
+          if(this._wrapper.getOption('width')) {
+            if(String(this._wrapper.getOption('width')).match(/%/)) {
+              this.dynamicResize = true;
+              this._updateResizeListener();
+            }
           }
-        }
-
-        this._wrapperReadySubject.next(this._wrapper);
-        this._initialized = true;
-
-        this._drawChart();
-        this._registerChartEvents();
-      });
+  
+          this._wrapperReadySubject.next(this._wrapper);
+          this._initialized = true;
+        }),
+        // Delay to allow the chart to be fully initialized
+        delay(50),
+        tap(() => {
+          this._drawChart();
+          this._registerChartEvents();
+        }),
+      )
+      .subscribe();
   }
 
   public ngOnChanges(changes: SimpleChanges) {
